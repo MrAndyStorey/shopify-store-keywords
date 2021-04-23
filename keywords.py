@@ -14,8 +14,8 @@ from progress.bar import Bar
 # Allow the user to pass the start and finish of the three-character list via a CLI argument.
 # By default it will go from aaa to zzz
 parser = argparse.ArgumentParser(description='Two optional arguments (start & end) can be passed with three-letter values.')
-parser.add_argument("--start", default="ada", type=str, help="Start of the three-letter character list - default = 'aaa'.")
-parser.add_argument("--end", default="aea", type=str, help="End of the three-letter character list - default = 'zzz'.")
+parser.add_argument("--start", default="aaa", type=str, help="Start of the three-letter character list - default = 'aaa'.")
+parser.add_argument("--end", default="zzz", type=str, help="End of the three-letter character list - default = 'zzz'.")
 args = parser.parse_args()
 
 
@@ -28,7 +28,6 @@ if __name__ == '__main__':
 
   keywords = []
 
-  csv_file_location = 'keywords.txt'
 
 
   # First, build a list of strings for the script to attempt to retrieve KWs.  
@@ -51,8 +50,11 @@ if __name__ == '__main__':
 
         bar.next()
 
+    csv_file_location = "keywords-" + charStarts + "-" + charEnds + ".txt"
+    
     with open(csv_file_location, 'w+', encoding='utf-8') as output_file:
       output_file.write('\n'.join(keywords))
+      output_file.write('\n')
       output_file.close()
     
   else:
