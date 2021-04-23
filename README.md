@@ -9,9 +9,7 @@ keywords.py -s bbb -e ddd
 
 ## Packages Used
 We will be using [Progress](https://github.com/verigak/progress) to display the progress of the scrip to the user.
-To install Progress, you should use Python's package installer, pip3. 
-
-On the MacOS CLI you can use this command:
+To install Progress, you should use Python's package installer, pip3.  On the MacOS CLI you can use these commands:
 ```
 pip3 install progress
 ```
