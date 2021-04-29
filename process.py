@@ -15,7 +15,7 @@ from progress.bar import Bar
 # Allow the user to pass the start and finish of the three-character list via a CLI argument.
 # By default it will go from aaa to zzz
 parser = argparse.ArgumentParser(description='Processes the input file using Beautiful Soup and then saves the data in the output file.')
-parser.add_argument("--input", default="/Users/andystorey/shopify-store-keywords/test.txt", type=str, help="Input filename - default = keywords.txt.")
+parser.add_argument("--input", default="/Users/andystorey/shopify-store-keywords/keywords.txt", type=str, help="Input filename - default = keywords.txt.")
 parser.add_argument("--output", default="/Users/andystorey/shopify-store-keywords/keyword_data.csv", type=str, help="Output filename - default = keyword_data.csv.")
 args = parser.parse_args()
 
@@ -23,6 +23,8 @@ getURL = "https://apps.shopify.com/search?q="
 #getURL = "https://webhook.site/66d175a7-bfd4-4943-8806-58c0e8510a80?q="
 
 topXLimit = 3
+
+requestHeaders = {'content-type': 'application/json', 'accept-encoding': 'gzip, deflate, br', 'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9', 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.128 Safari/537.36'}
 
 if __name__ == '__main__':
     keywords = []
@@ -44,7 +46,7 @@ if __name__ == '__main__':
                 if response.status_code == 200:
                     avgRating = []
                     avgReviews = []
-
+                    
                     builtResults = "0"
                     builtFree = "0"
                     builtPaid = "0"
@@ -52,6 +54,7 @@ if __name__ == '__main__':
                     builtAvgReviews = "0"
                     builtTopX = ""
 
+                    #Count the total number of results.  
                     numResults = re.search("of\s(\d+)\sresults", response.text)
                     if numResults:
                         builtResults = "{}".format(str(numResults[1]))
@@ -74,28 +77,26 @@ if __name__ == '__main__':
                     #Now find out the average number of stars each app has (avgRating) and a count of all the reviews (avgReviews)
                     for searchResultItem in soup.find_all("div", class_ = "ui-app-card__review", limit=100):
                         if searchResultItem.find(class_ = "ui-star-rating__rating"):
-                            searchRatings = re.search("(\d+)", searchResultItem.find(class_ = "ui-star-rating__rating").text)
+                            searchRatings = re.search("([0-9].[0-9])", searchResultItem.find(class_ = "ui-star-rating__rating").text)
                             if searchRatings:
                                 avgRating.append(float(searchRatings[1]))
 
                         if searchResultItem.find(class_ = "ui-review-count-summary"):
-                            searchReviews = re.search("([0-9].[0-9])", searchResultItem.find(class_ = "ui-review-count-summary").text)
+                            searchReviews = re.search("(\d+)", searchResultItem.find(class_ = "ui-review-count-summary").text)
                             if searchReviews:
                                 avgReviews.append(int(searchReviews[1]))
 
-                    builtAvgRating = "{}".format(round(sum(avgRating) / len(avgRating),2))
-                    builtAvgReviews = "{}".format(sum(avgReviews))
+                    if len(avgRating) > 0:
+                        builtAvgRating = "{}".format(round(sum(avgRating) / len(avgRating),2))
+                        
+                    if len(avgReviews) > 0:
+                        builtAvgReviews = "{}".format(round(sum(avgReviews) / len(avgReviews),0))
 
-                    #Finally, find the names of the top X apps, we wil separate them with a pipe.
+                    #Find the names of the top X apps, we wil separate them with a pipe.
                     for searchResultItem in soup.find_all("h2", class_ = "heading--4 ui-app-card__name", limit=topXLimit):
                             builtTopX = builtTopX + "{}|".format(str(searchResultItem.text))
 
-                    
                     # Write the data for this row to the csv file.
                     csv_writer.writerow([keyword, builtResults, builtFree, builtPaid, builtAvgRating, builtAvgReviews, builtTopX.rstrip('|')])
-
                 bar.next()
-
-
         output_file.close()
-
